@@ -15,12 +15,12 @@ struct ClassifierResult{
 }
 
 final class MoneyClassifier{
-    private let model: Model10Sept
+    private let model: BacaUang
     let labels: [String]
     let imgSize: Int
-    
+
     init() throws {
-        model = try Model10Sept(configuration: MLModelConfiguration())
+        model = try BacaUang(configuration: MLModelConfiguration())
         (labels, imgSize) = Self.loadMeta()
     }
     
@@ -40,8 +40,8 @@ final class MoneyClassifier{
     func classify(cgImage: CGImage) -> ClassifierResult? {
           guard let buffer = Letterbox.pixelBuffer(from: cgImage, size: imgSize) else { return nil }
           guard let output = try? model.prediction(image: buffer) else { return nil }
-          let probs = output.targetProbability
-          return ClassifierResult(label: output.target, confidence: probs[output.target] ?? 0, allProbs: probs)
+          let probs = output.classLabel_probs
+          return ClassifierResult(label: output.classLabel, confidence: probs[output.classLabel] ?? 0, allProbs: probs)
       }
     
 }

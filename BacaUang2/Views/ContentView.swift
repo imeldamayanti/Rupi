@@ -94,18 +94,26 @@ struct ContentView: View {
                     }
                     
                     guard pendingCount >= requiredConsecutive else { return }
-                    
-                    
-                    
+
                     let now = Date()
                     let sameLabelStillCooling = r.label == lastAnnounced && now.timeIntervalSince(lastAnnouncedAt) < announceCooldown
                     guard !sameLabelStillCooling else { return }
-                    
-                    lastAnnounced = r.label
-                    lastAnnouncedAt = now
-                    speaker.announce(r.label)
-                    if let (short, long) = ContentView.hapticMap[r.label] {
-                        haptics.playDenomination(shortCount: short, hasLong: long)
+
+                    let labelToConfirm = r.label
+                    TextRecognizer.recognizedDigitStrings(in: cgImage) { digitStrings in
+                        let verdict = TextRecognizer.confirms(label: labelToConfirm, digitStrings: digitStrings)
+                        DispatchQueue.main.async {
+                            // OCR ran async; re-check the guess hasn't moved on in the meantime.
+                            guard pendingLabel == labelToConfirm, pendingCount >= requiredConsecutive else { return }
+                            guard verdict != false else { return } // OCR read a different number: skip, let it retry next frame
+
+                            lastAnnounced = labelToConfirm
+                            lastAnnouncedAt = Date()
+                            speaker.announce(labelToConfirm)
+                            if let (short, long) = ContentView.hapticMap[labelToConfirm] {
+                                haptics.playDenomination(shortCount: short, hasLong: long)
+                            }
+                        }
                     }
                 }
             }
