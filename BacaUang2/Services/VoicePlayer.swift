@@ -21,6 +21,10 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDel
     private let synthesizer = AVSpeechSynthesizer()
     private var player: AVAudioPlayer?
     private var queue: [String] = []
+    /// Bumped on every stop so a pending gap timer can't resume a cancelled queue.
+    private var generation = 0
+    /// Clips are trimmed tight, so lines read back to back get a short breath between them.
+    private let gapBetweenLines: TimeInterval = 0.35
 
     override init() {
         super.init()
@@ -41,6 +45,7 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDel
     }
 
     func stop() {
+        generation += 1
         queue = []
         player?.stop()
         player = nil
@@ -65,11 +70,20 @@ final class VoicePlayer: NSObject, AVAudioPlayerDelegate, AVSpeechSynthesizerDel
         synthesizer.speak(utterance)
     }
 
+    private func playNextAfterGap() {
+        guard !queue.isEmpty else { return }
+        let current = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + gapBetweenLines) { [weak self] in
+            guard let self, self.generation == current else { return }
+            self.playNext()
+        }
+    }
+
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        playNext()
+        playNextAfterGap()
     }
 
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        playNext()
+        playNextAfterGap()
     }
 }
