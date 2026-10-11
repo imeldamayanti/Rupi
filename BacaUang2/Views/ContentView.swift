@@ -12,7 +12,7 @@ struct ContentView: View {
     @State private var loadError: String?
     @State private var result: ClassifierResult?
     
-    @State private var speaker = SpeechAnnouncer()
+    @State private var speaker = VoicePlayer()
     
     @State private var lastAnnounced: String?
     @State private var lastAnnouncedAt = Date.distantPast
@@ -90,7 +90,7 @@ struct ContentView: View {
             do {
                 classifier = try MoneyClassifier()
             } catch {
-                loadError = "Gagal load model: \(error)"
+                loadError = "Gagal memuat model: \(error)"
             }
             camera.onFrame = { cgImage in
                 guard !showTutorial else { return }
@@ -156,7 +156,7 @@ struct ContentView: View {
             }
         }
         .onDisappear { camera.stop() }
-        .alert("Error", isPresented: .constant(loadError != nil || camera.setupError != nil)) {
+        .alert("Kesalahan", isPresented: .constant(loadError != nil || camera.setupError != nil)) {
             Button("OK") {}
         } message: {
             Text(loadError ?? camera.setupError ?? "")

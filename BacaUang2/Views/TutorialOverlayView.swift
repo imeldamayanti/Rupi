@@ -6,27 +6,26 @@
 //
 
 import SwiftUI
-import AVFoundation
 
 struct TutorialOverlayView: View {
     let onDismiss : (() -> Void)
-    private let synthesizer = AVSpeechSynthesizer()
+    @State private var voice = VoicePlayer()
     
     private static let steps = [
-        "Hold the phone in front of your chest.",
-        "Unfold the money and point it at the back camera.",
-        "Keep some distance by half-extending the hand holding the money.",
-        "Hold still until the phone beeps or vibrates.",
+        "Pegang ponsel di depan dada.",
+        "Buka lipatan uang, lalu arahkan ke kamera belakang.",
+        "Jaga jarak dengan merentangkan setengah tangan yang memegang uang.",
+        "Tahan sampai ponsel berbunyi atau bergetar.",
     ]
     
-    private static let hapticRows: [(label: String, spoken: String, desc: String)] = [
-        ("1,000", "one thousand", "1 time short vibration"),
-        ("2,000", "two thousand", "2 times short vibration"),
-        ("5,000", "five thousand", "3 times short vibration"),
-        ("10,000", "ten thousand", "1 time short vibration + 1 time long vibration"),
-        ("20,000", "twenty thousand", "2 times short vibration + 1 time long vibration"),
-        ("50,000", "fifty thousand", "3 times short vibration + 1 time long vibration"),
-        ("100,000", "one hundred thousand", "4 times short vibration + 1 time long vibration"),
+    private static let hapticRows: [(label: String, desc: String)] = [
+        ("1.000", "getar pendek 1 kali"),
+        ("2.000", "getar pendek 2 kali"),
+        ("5.000", "getar pendek 3 kali"),
+        ("10.000", "getar pendek 1 kali + getar panjang 1 kali"),
+        ("20.000", "getar pendek 2 kali + getar panjang 1 kali"),
+        ("50.000", "getar pendek 3 kali + getar panjang 1 kali"),
+        ("100.000", "getar pendek 4 kali + getar panjang 1 kali"),
     ]
     
     var body: some View {
@@ -36,7 +35,7 @@ struct TutorialOverlayView: View {
             ScrollView{
                 VStack(alignment: .leading, spacing: 16){
                  
-                    Text("How to Use")
+                    Text("Cara Memakai")
                         .font(.title.bold())
                         .foregroundStyle(.white)
                     
@@ -45,10 +44,10 @@ struct TutorialOverlayView: View {
                             .foregroundStyle(.white)
                     }
                     
-                    Text("Short vibration = digit, long vibration = marks a larger thousand value:")
+                    Text("Getaran pendek = angka, getaran panjang = menandai nilai ribuan yang lebih besar:")
                         .foregroundStyle(.white)
                     
-                    Text("Tap anywhere on the screen to continue.")
+                    Text("Ketuk di mana saja pada layar untuk melanjutkan.")
                         .font(.footnote)
                         .foregroundStyle(.white.opacity(0.7))
                         .padding(.top, 8)
@@ -69,28 +68,20 @@ struct TutorialOverlayView: View {
         .contentShape(Rectangle())
         .onTapGesture { dismiss() }
         .onAppear { speakAll() }
-        .onDisappear { synthesizer.stopSpeaking(at: .immediate) }
+        .onDisappear { voice.stop() }
     }
     private func dismiss(){
-        synthesizer.stopSpeaking(at: .immediate)
+        voice.stop()
         onDismiss()
     }
     
     private func speakAll(){
-        var sentences = ["How to use."]
-        sentences.append(contentsOf: Self.steps)
-        sentences.append("Short vibration means a digit, long vibration marks a larger thousand value.")
-        sentences.append("Tap anywhere on the screen to continue.")
-        for row in Self.hapticRows {
-            sentences.append("\(row.spoken): \(row.desc).")
-        }
-        
-        
-        for sentence in sentences {
-            let utterance = AVSpeechUtterance(string: sentence)
-            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-            synthesizer.speak(utterance)
-        }
+        let denominations = ["1000", "2000", "5000", "10000", "20000", "50000", "100000"]
+        var ids = ["tutorial_title"]
+        ids += (1...Self.steps.count).map { "tutorial_step_\($0)" }
+        ids += ["tutorial_explain", "tutorial_tap"]
+        ids += denominations.map { "haptic_\($0)" }
+        voice.play(ids)
     }
 }
 

@@ -1,0 +1,23 @@
+{
+  "den_1000": "Seribu rupiah",
+  "den_2000": "Dua ribu rupiah",
+  "den_5000": "Lima ribu rupiah",
+  "den_10000": "Sepuluh ribu rupiah",
+  "den_20000": "Dua puluh ribu rupiah",
+  "den_50000": "Lima puluh ribu rupiah",
+  "den_100000": "Seratus ribu rupiah",
+  "tutorial_title": "Cara memakai.",
+  "tutorial_step_1": "Pegang ponsel di depan dada.",
+  "tutorial_step_2": "Buka lipatan uang, lalu arahkan ke kamera belakang.",
+  "tutorial_step_3": "Jaga jarak dengan merentangkan setengah tangan yang memegang uang.",
+  "tutorial_step_4": "Tahan sampai ponsel berbunyi atau bergetar.",
+  "tutorial_explain": "Getaran pendek berarti angka, getaran panjang menandai nilai ribuan yang lebih besar.",
+  "tutorial_tap": "Ketuk di mana saja pada layar untuk melanjutkan.",
+  "haptic_1000": "Seribu: getar pendek satu kali.",
+  "haptic_2000": "Dua ribu: getar pendek dua kali.",
+  "haptic_5000": "Lima ribu: getar pendek tiga kali.",
+  "haptic_10000": "Sepuluh ribu: getar pendek satu kali, lalu getar panjang satu kali.",
+  "haptic_20000": "Dua puluh ribu: getar pendek dua kali, lalu getar panjang satu kali.",
+  "haptic_50000": "Lima puluh ribu: getar pendek tiga kali, lalu getar panjang satu kali.",
+  "haptic_100000": "Seratus ribu: getar pendek empat kali, lalu getar panjang satu kali."
+}
