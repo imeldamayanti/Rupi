@@ -21,6 +21,10 @@ struct ContentView: View {
     @State private var pendingLabel: String?
     @State private var pendingCount = 0
     private let requiredConsecutive = 3
+    /// Needed when OCR couldn't read any digits (classifier alone).
+    private let strictThreshold = 0.95
+    /// Enough when OCR independently read the same denomination.
+    private let ocrConfirmedThreshold = 0.70
     
     private let announceCooldown: TimeInterval = 4
     
@@ -102,7 +106,7 @@ struct ContentView: View {
                         }
                     }
 
-                    guard r.label != "empty", r.confidence >= 0.95 else {
+                    guard r.label != "empty", r.confidence >= ocrConfirmedThreshold else {
                         pendingLabel = nil
                         pendingCount = 0
                         return
@@ -122,12 +126,15 @@ struct ContentView: View {
                     guard !sameLabelStillCooling else { return }
 
                     let labelToConfirm = r.label
+                    let confidence = r.confidence
                     TextRecognizer.recognizedDigitStrings(in: cgImage) { digitStrings in
                         let verdict = TextRecognizer.confirms(label: labelToConfirm, digitStrings: digitStrings)
                         DispatchQueue.main.async {
                             // OCR ran async; re-check the guess hasn't moved on in the meantime.
                             guard pendingLabel == labelToConfirm, pendingCount >= requiredConsecutive else { return }
                             guard verdict != false else { return } // OCR read a different number: skip, let it retry next frame
+                            // OCR inconclusive (nil): fall back to the strict classifier-only threshold.
+                            if verdict == nil { guard confidence >= strictThreshold else { return } }
 
                             lastAnnounced = labelToConfirm
                             lastAnnouncedAt = Date()
