@@ -24,6 +24,11 @@ struct ContentView: View {
     
     private let announceCooldown: TimeInterval = 4
     
+    @State private var ocrDigits: [String] = []
+    @State private var ocrBusy = false
+    @State private var lastOCRAt = Date.distantPast
+    private let ocrInterval: TimeInterval = 0.5
+
     @State private var showTutorial = false
     private static let hasSeenTutorialKey = "hasSeenTutorial"
     
@@ -40,11 +45,15 @@ struct ContentView: View {
                 .ignoresSafeArea()
             
             if let result {
-                Text("\(result.label)  conf=\(String(format: "%.2f", result.confidence))")
-                    .font(.title2.bold())
-                    .padding()
-                    .background(.ultraThinMaterial)
-                    .padding(.bottom, 40)
+                VStack(spacing: 4) {
+                    Text("\(result.label)  conf=\(String(format: "%.2f", result.confidence))")
+                        .font(.title2.bold())
+                    Text("OCR: \(ocrDigits.isEmpty ? "-" : ocrDigits.joined(separator: ", "))")
+                        .font(.title3)
+                }
+                .padding()
+                .background(.ultraThinMaterial)
+                .padding(.bottom, 40)
             }
             
             VStack {
@@ -80,6 +89,19 @@ struct ContentView: View {
                 guard let r = classifier?.classify(cgImage: cgImage) else { return }
                 DispatchQueue.main.async {
                     result = r
+
+                    // Continuous OCR for on-screen display (throttled, one request at a time).
+                    if !ocrBusy, Date().timeIntervalSince(lastOCRAt) >= ocrInterval {
+                        ocrBusy = true
+                        lastOCRAt = Date()
+                        TextRecognizer.recognizedDigitStrings(in: cgImage) { digits in
+                            DispatchQueue.main.async {
+                                ocrDigits = digits
+                                ocrBusy = false
+                            }
+                        }
+                    }
+
                     guard r.label != "empty", r.confidence >= 0.95 else {
                         pendingLabel = nil
                         pendingCount = 0
