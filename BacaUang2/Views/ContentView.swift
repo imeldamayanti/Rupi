@@ -52,7 +52,11 @@ struct ContentView: View {
                 VStack(spacing: 4) {
                     Text("\(result.label)  conf=\(String(format: "%.2f", result.confidence))")
                         .font(.title2.bold())
-                    Text("OCR: \(ocrDigits.isEmpty ? "-" : ocrDigits.joined(separator: ", "))")
+                    Text(result.allProbs.sorted { $0.value > $1.value }.prefix(3)
+                        .map { "\($0.key) \(String(format: "%.2f", $0.value))" }
+                        .joined(separator: "  "))
+                        .font(.subheadline.monospacedDigit())
+                    Text("OCR:\(ocrDigits.isEmpty ? "-" : ocrDigits.joined(separator: ", "))")
                         .font(.title3)
                 }
                 .padding()
